@@ -205,6 +205,7 @@ export default {
 
       /**
        * Player is active, but user has paused.
+       * MUSS EVTL ANGEPASST WERDEN!!!
        */
       if (this.playerResponse.is_playing === false) {
         this.playerData = this.getEmptyPlayer()
@@ -235,6 +236,7 @@ export default {
           image: this.playerResponse.item.album.images[0].url
         }
       }
+      console.log(this.playerResponse.progress_ms); //TEST!!!
     },
 
     /**
