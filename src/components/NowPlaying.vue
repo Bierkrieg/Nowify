@@ -218,6 +218,7 @@ export default {
        * one, we don't want to update the DOM yet.
        */
       if (this.playerResponse.item?.id === this.playerData.trackId) {
+        console.log(this.playerResponse.progress_ms); //TEST!!!
         return
       }
 
