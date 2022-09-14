@@ -1,6 +1,7 @@
 <template>
   <div id="app">
     <div
+      @click="handleClick()"
       v-if="player.playing"
       class="now-playing"
       :class="getNowPlayingClass()"
@@ -17,7 +18,7 @@
         <h2 class="now-playing__artists" v-text="getTrackArtists"></h2>
       </div>
     </div>
-    <div v-else class="now-playing" :class="getNowPlayingClass()">
+    <div v-else @click="handleClick()" class="now-playing" :class="getNowPlayingClass()">
       <h1 class="now-playing__idle-heading">No music is playing 😰</h1>
     </div>
   </div>
@@ -43,7 +44,9 @@ export default {
       playerResponse: {},
       playerData: this.getEmptyPlayer(),
       colourPalette: '',
-      swatches: []
+      swatches: [],
+      clickCount: 0,
+      clickTimer: null
     }
   },
 
@@ -118,6 +121,109 @@ export default {
         })
       }
     },
+
+    /**
+    * prevent overlap of click and dblclick
+    */
+    handleClick() {
+      //https://antenna.io/blog/2018/03/handle-single-and-double-clicks-on-the-same-element-in-vue-js/
+      this.clickCount++
+
+      if (this.clickCount === 1) {
+        this.clickTimer = setTimeout(() => {
+          this.clickCount = 0
+          this.togglePlayback()
+        }, 500)
+      } else if (this.clickCount === 2) {
+        clearTimeout(this.clickTimer)
+        this.clickCount = 0
+        this.skipSong()
+      }
+    },
+
+    /**
+     * toggle Playback or start playing array of Songs
+     * @param {array} songlist 
+     */
+    async togglePlayback(songlist = []) {
+      //pause when playing, resume when idle
+      let endpoint = this.playerResponse.is_playing ? this.endpoints.pausePlayback : this.endpoints.startPlayback
+      let response = ""
+      let data = {}
+
+      try {
+        //when songlist is not empty, play the array of Songs
+        if (songlist.length !== 0) {
+          //coming up
+
+          /* bodydata = '{\"uris:\"}'
+             const response = await fetch(
+            `${this.endpoints.base}/${this.endpoints.startPlayback}`,
+            {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${this.auth.accessToken}`
+              }
+              //body: JSON.stringify()
+            }
+          ) */
+        }
+
+        //when songlist is empty, pause when playing, resume when idle
+        else if (songlist.length === 0) {
+
+          response = await fetch(
+            `${this.endpoints.base}/${endpoint}`,
+            {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${this.auth.accessToken}`
+              }
+            }
+          )
+        }
+
+        /**
+         * Fetch error.
+         */
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+
+      } catch (error) {
+
+        //probably not needed, but maybe useful later
+        data = this.getEmptyPlayer()
+        this.playerData = data
+        this.$nextTick(() => {
+          this.$emit('spotifyTrackUpdated', data)
+        })
+      }
+    },
+
+    async skipSong() {
+      try {
+        const response = await fetch(
+          `${this.endpoints.base}/${this.endpoints.skipNext}`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+      } catch (error) {
+        //what here
+        console.log("error")
+      }
+
+    },
+
+
 
     /**
      * Get the Now Playing element class.
