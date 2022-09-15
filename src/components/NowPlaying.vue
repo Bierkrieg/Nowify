@@ -46,7 +46,8 @@ export default {
       colourPalette: '',
       swatches: [],
       clickCount: 0,
-      clickTimer: null
+      clickTimer: null,
+      vibrantToggle: false
     }
   },
 
@@ -246,15 +247,17 @@ export default {
       }
 
       /**
-       * Run node-vibrant to get colours.
+       * Run node-vibrant to get colours if album changed
        */
-      Vibrant.from(this.player.trackAlbum.image)
+      if (!this.vibrantToggle) {
+        Vibrant.from(this.player.trackAlbum.image)
         .quality(1)
         .clearFilters()
         .getPalette()
         .then(palette => {
           this.handleAlbumPalette(palette)
         })
+      }
     },
 
     /**
@@ -324,13 +327,14 @@ export default {
        * one, we don't want to update the DOM yet.
        */
       if (this.playerResponse.item?.id === this.playerData.trackId) {
-        console.log(this.playerResponse.progress_ms); //TEST!!!
         return
       }
 
       /**
-       * Store the current active track.
+       * Store the current active track and check if its the same album cover.
        */
+      //prevent background from updating when cover stays the same
+      this.vibrantToggle = (this.playerData.trackAlbum.title === this.playerResponse.item.album.name) ? true : false
       this.playerData = {
         playing: this.playerResponse.is_playing,
         trackArtists: this.playerResponse.item.artists.map(
@@ -343,7 +347,6 @@ export default {
           image: this.playerResponse.item.album.images[0].url
         }
       }
-      console.log(this.playerResponse.progress_ms); //TEST!!!
     },
 
     /**
