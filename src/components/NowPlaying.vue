@@ -4,7 +4,6 @@
       @click="handleClick()"
       v-if="player.playing"
       class="now-playing"
-      :class="getNowPlayingClass()"
     >
       <div class="now-playing__cover">
         <img
@@ -18,8 +17,65 @@
         <h2 class="now-playing__artists" v-text="getTrackArtists"></h2>
       </div>
     </div>
-    <div v-else @click="handleClick()" class="now-playing" :class="getNowPlayingClass()">
-      <h1 class="now-playing__idle-heading">No music is playing 😰</h1>
+    <div v-else @click="handleClick()" class="now-idle">
+      <div class="now-idle__tracks"> 
+        <img 
+          :src="userTopItems.trackCover[0]"
+          :alt="userTopItems.trackTitle[0]"
+          class="now-idle__image"
+        />
+        <!--
+        <img 
+          :src="userTopItems.trackCover[1]"
+          :alt="userTopItems.trackTitle[1]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.trackCover[2]"
+          :alt="userTopItems.trackTitle[2]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.trackCover[3]"
+          :alt="userTopItems.trackTitle[3]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.trackCover[4]"
+          :alt="userTopItems.trackTitle[4]"
+          class="now-idle__image"
+        />
+        -->
+      </div>
+      <div class="now-idle__artists"> 
+        <img 
+          :src="userTopItems.artistImage[0]"
+          :alt="userTopItems.artistName[0]"
+          class="now-idle__image"
+        />
+        <!--
+        <img 
+          :src="userTopItems.artistImage[1]"
+          :alt="userTopItems.artistName[1]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.artistImage[2]"
+          :alt="userTopItems.artistName[2]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.artistImage[3]"
+          :alt="userTopItems.artistName[3]"
+          class="now-idle__image"
+        />
+        <img 
+          :src="userTopItems.artistImage[4]"
+          :alt="userTopItems.artistName[4]"
+          class="now-idle__image"
+        />
+        -->
+      </div>
     </div>
   </div>
 </template>
@@ -41,8 +97,11 @@ export default {
   data() {
     return {
       pollPlaying: '',
+      pollTopItems: '',
       playerResponse: {},
+      topItemsResponse: {},
       playerData: this.getEmptyPlayer(),
+      userTopItems: this.getEmptyTopItems(),
       colourPalette: '',
       swatches: [],
       clickCount: 0,
@@ -62,11 +121,13 @@ export default {
   },
 
   mounted() {
+    this.getTopItems()
     this.setDataInterval()
   },
 
   beforeDestroy() {
     clearInterval(this.pollPlaying)
+    clearInterval(this.pollTopItems)
   },
 
   methods: {
@@ -78,6 +139,7 @@ export default {
       let data = {}
 
       try {
+        //error with 503 response causes glitch?
         const response = await fetch(
           `${this.endpoints.base}/${this.endpoints.nowPlaying}`,
           {
@@ -101,11 +163,9 @@ export default {
         if (response.status === 204) {
           data = this.getEmptyPlayer()
           this.playerData = data
-
           this.$nextTick(() => {
             this.$emit('spotifyTrackUpdated', data)
           })
-
           return
         }
 
@@ -113,7 +173,6 @@ export default {
         this.playerResponse = data
       } catch (error) {
         this.handleExpiredToken()
-
         data = this.getEmptyPlayer()
         this.playerData = data
 
@@ -121,6 +180,73 @@ export default {
           this.$emit('spotifyTrackUpdated', data)
         })
       }
+    },
+
+    /**
+     * Make the network request to Spotify to
+     * get the Top Items of the current User.
+     */
+    async getTopItems() {
+
+      const time_range = 'short_term'
+      const limit = 5
+      
+      let Trackdata = {}
+      let Artistdata = {}
+      
+      try {
+        const responseTracks = await fetch(
+          `${this.endpoints.base}/${this.endpoints.topTracks}?time_range=${time_range}&limit=${limit}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        /**
+         * Fetch error.
+         */
+        if (!responseTracks.ok) {
+          throw new Error(`An error has occured: ${responseTracks.status}`)
+        }
+
+        const responseArtists = await fetch(
+          `${this.endpoints.base}/${this.endpoints.topArtists}?time_range=${time_range}&limit=${limit}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        /**
+         * Fetch error.
+         */
+        if (!responseArtists.ok) {
+          throw new Error(`An error has occured: ${responseArtists.status}`)
+        }
+
+        Trackdata = await responseTracks.json()
+        Artistdata = await responseArtists.json() 
+
+        this.topItemsResponse = {
+          Trackdata: Trackdata,
+          Artistdata : Artistdata
+        }
+
+      } catch (error) {
+        this.handleExpiredToken()
+        this.userTopItems = this.getEmptyTopItems()
+        this.$nextTick(() => {
+          this.$emit('spotifyTopItemsUpdated', this.userTopItems)
+        })
+      }
+
+      //here?
+      this.handleNowIdle()
     },
 
     /**
@@ -144,13 +270,14 @@ export default {
 
     /**
      * toggle Playback or start playing array of Songs
-     * @param {array} songlist 
+     * @param {Array} songlist 
      */
     async togglePlayback(songlist = []) {
+
       //pause when playing, resume when idle
       let endpoint = this.playerResponse.is_playing ? this.endpoints.pausePlayback : this.endpoints.startPlayback
       let response = ""
-      let data = {}
+      //let data = {}
 
       try {
         //when songlist is not empty, play the array of Songs
@@ -193,12 +320,12 @@ export default {
 
       } catch (error) {
 
-        //probably not needed, but maybe useful later
+        /* //probably not needed, but maybe useful later
         data = this.getEmptyPlayer()
         this.playerData = data
         this.$nextTick(() => {
           this.$emit('spotifyTrackUpdated', data)
-        })
+        }) */
       }
     },
 
@@ -224,17 +351,6 @@ export default {
 
     },
 
-
-
-    /**
-     * Get the Now Playing element class.
-     * @return {String}
-     */
-    getNowPlayingClass() {
-      const playerClass = this.player.playing ? 'active' : 'idle'
-      return `now-playing--${playerClass}`
-    },
-
     /**
      * Get the colour palette from the album cover.
      */
@@ -248,6 +364,7 @@ export default {
 
       /**
        * Run node-vibrant to get colours if album changed
+       * DOES NOT WORK IF PAUSE/UNPAUSE
        */
       if (!this.vibrantToggle) {
         Vibrant.from(this.player.trackAlbum.image)
@@ -265,6 +382,7 @@ export default {
      * @return {Object}
      */
     getEmptyPlayer() {
+      
       return {
         playing: false,
         trackAlbum: {},
@@ -275,13 +393,37 @@ export default {
     },
 
     /**
+     * Return a formatted empty object for the Top Artists and Tracks for Users
+     * @return {Object}
+     */
+    getEmptyTopItems() {
+      return {
+        //Top Tracks
+        trackCover: [],
+        trackId: [],
+        trackTitle: [],
+
+        //Top Artists
+        artistId: [],
+        artistImage: [],
+        artistName: [],
+      }
+    },
+
+    /**
      * Poll Spotify for data.
      */
     setDataInterval() {
       clearInterval(this.pollPlaying)
+      clearInterval(this.pollTopItems)
       this.pollPlaying = setInterval(() => {
         this.getNowPlaying()
       }, 2500)
+
+      //29min Interval, since tokens persist for 1 hour?
+      this.pollTopItems = setInterval(() => {
+        this.getTopItems()
+      }, 1740000)
     },
 
     /**
@@ -300,6 +442,31 @@ export default {
     },
 
     /**
+     * Handle Top Tracks and Artists
+     */
+    handleNowIdle() {
+      if (
+        this.topItemsResponse.Trackdata.error?.status === 401 ||
+        this.topItemsResponse.Trackdata.error?.status === 400 ||
+        this.topItemsResponse.Artistdata.error?.status === 401 ||
+        this.topItemsResponse.Artistdata.error?.status === 400 
+      ) {
+        this.handleExpiredToken()
+        return
+      }
+
+      for (let i = 0; i < 5; i++) {         
+        this.userTopItems.trackCover[i] = this.topItemsResponse.Trackdata.items[i].album.images[0].url       
+        this.userTopItems.trackId[i] = this.topItemsResponse.Trackdata.items[i].id
+        this.userTopItems.trackTitle[i] = this.topItemsResponse.Trackdata.items[i].name
+
+        this.userTopItems.artistId[i] = this.topItemsResponse.Artistdata.items[i].id
+        this.userTopItems.artistImage[i] = this.topItemsResponse.Artistdata.items[i].images[0].url
+        this.userTopItems.artistName[i] = this.topItemsResponse.Artistdata.items[i].name 
+      } 
+    },
+
+    /**
      * Handle newly updated Spotify Tracks.
      */
     handleNowPlaying() {
@@ -308,17 +475,14 @@ export default {
         this.playerResponse.error?.status === 400
       ) {
         this.handleExpiredToken()
-
         return
       }
 
       /**
        * Player is active, but user has paused.
-       * MUSS EVTL ANGEPASST WERDEN!!!
        */
       if (this.playerResponse.is_playing === false) {
         this.playerData = this.getEmptyPlayer()
-
         return
       }
 
@@ -334,7 +498,7 @@ export default {
        * Store the current active track and check if its the same album cover.
        */
       //prevent background from updating when cover stays the same
-      this.vibrantToggle = (this.playerData.trackAlbum.title === this.playerResponse.item.album.name) ? true : false
+      this.vibrantToggle = (this.playerData.trackAlbum.title === this.playerResponse.item.album.name)
       this.playerData = {
         playing: this.playerResponse.is_playing,
         trackArtists: this.playerResponse.item.artists.map(
@@ -381,6 +545,7 @@ export default {
      */
     handleExpiredToken() {
       clearInterval(this.pollPlaying)
+      clearInterval(this.pollTopItems)
       this.$emit('requestRefreshToken')
     }
   },
@@ -410,6 +575,13 @@ export default {
       this.$nextTick(() => {
         this.getAlbumColours()
       })
+    },
+
+    /**
+     * Watch our locally stored top-items data
+     */
+    userTopItems: function() {
+      this.$emit('spotifyTopItemsUpdated', this.userTopItems)
     }
   }
 }

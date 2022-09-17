@@ -5,7 +5,9 @@
       :auth="auth"
       :endpoints="endpoints"
       :player="player"
+      :userTopItems="userTopItems"
       @spotifyTrackUpdated="updateCurrentTrack"
+      @spotifyTopItemsUpdated="updateTopItems"
       @requestRefreshToken="requestRefreshTokens"
     ></Component>
   </div>
@@ -44,6 +46,8 @@ export default {
         token: 'https://accounts.spotify.com/api/token',
         base: 'https://api.spotify.com/v1',
         nowPlaying: 'me/player/currently-playing',
+        topTracks: 'me/top/tracks',
+        topArtists: 'me/top/artists',
         startPlayback: 'me/player/play',
         pausePlayback: 'me/player/pause',
         skipNext: 'me/player/next'
@@ -53,6 +57,17 @@ export default {
         trackArtists: [],
         trackTitle: '',
         trackAlbum: []
+      },
+      userTopItems: {
+        //Top Tracks
+        trackCover: [],
+        trackId: [],
+        trackTitle: [],
+
+        //Top Artists
+        artistId: [],
+        artistImage: [],
+        artistName: [],
       },
       storedId: ''
     }
@@ -95,10 +110,14 @@ export default {
 
     /**
      * Update the player object.
-     * @param {Object} value - Spotify playr object.
+     * @param {Object} value - Spotify player object.
      */
     updateCurrentTrack(value) {
       this.player = value
+    },
+
+    updateTopItems(value) {
+      this.userTopItems = value
     }
   },
 

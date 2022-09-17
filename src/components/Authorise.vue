@@ -62,7 +62,7 @@ export default {
      * Spotify to grant app consent, user will
      * be redirected back to the app.
      */
-    initAuthorise() {
+    initAuthorise() {       
       this.setAuthUrl()
       window.location.href = `${this.endpoints.auth}?${searchParams.toString()}`
     },
@@ -199,8 +199,8 @@ export default {
             .substring(5)
         ].join('-')
       )
-      searchParams.append('scope', ['user-modify-playback-state','user-read-currently-playing'])
-
+      //SCOPES!!!!!!!!!!!!1
+      searchParams.append('scope', ['user-modify-playback-state','user-read-currently-playing','user-top-read'])
       return `${this.endpoints.auth}?${searchParams.toString()}`
     }
   },

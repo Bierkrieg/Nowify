@@ -4,7 +4,7 @@
  * Styles for the 'Now Playing' screen.
  *
  */
-.now-playing {
+ .now-playing {
   background-color: var(--colour-background-now-playing);
   color: var(--color-text-primary);
   display: flex;
@@ -12,6 +12,8 @@
   height: 100%;
   padding: var(--spacing-l);
   width: 100%;
+  align-items: center;
+  justify-content: center;
 
   &__cover,
   &__details {
@@ -43,17 +45,6 @@
     opacity: 0.8;
   }
 
-  &--active {
-    align-items: center;
-    justify-content: center;
-  }
-
-  &--idle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   @media only screen and (min-width: 767px) {
     flex-flow: row nowrap;
     padding: 10%;
@@ -67,5 +58,38 @@
     &__details {
       text-align: left;
     }
+  }
+}
+
+.now-idle {
+  background-color: var(--colour-background-now-playing);
+  color: var(--color-text-primary);
+  display: flex;
+  flex-flow: column nowrap;
+  height: 100%;
+  padding: var(--spacing-l);
+  width: 100%;
+  align-items: center;
+  justify-content: space-evenly;
+
+  &__tracks {
+    max-width: 400px;
+  }
+
+  &__artists {
+    max-width: 400px;
+  }
+
+  &__image {
+    box-shadow: 1px 1px 16px -2px rgba(0, 0, 0, .3);
+    height: auto;
+    max-width: 60vw;
+    width: 100%;
+  }
+
+  @media only screen and (min-width: 767px) {
+    flex-flow: row nowrap;
+    //distance of two images
+    padding: 15%;
   }
 }
