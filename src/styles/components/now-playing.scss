@@ -74,7 +74,7 @@
 
   &__topfade {
     height: 40vh;
-    width: 40vh;
+    width: 80vh;
     z-index: -1;
     position: fixed;
     top: 0px;
@@ -83,7 +83,7 @@
 
   &__bottomfade {
     height: 40vh;
-    width: 40vh;
+    width: 80vh;
     z-index: -1;
     position: fixed;
     bottom: 0px;
@@ -91,44 +91,82 @@
   }
 
   &__tracks {
-    max-width: 40vh;
-    height:100vh;
+    max-width: 80vh;
+    height: 100vh;
     z-index: 0;
-    overflow: scroll;
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    //https://developer.mozilla.org/en-US/docs/Web/CSS/scroll-snap-type
   }
 
   &__tracks::-webkit-scrollbar {
     display: none;
   }
 
-  &__artists {
-    overflow: scroll;
-    max-width: 40vh;
-    height:100vh;
+  &__trackbox {
+    max-width: 80vh;
+    max-height: 40vh;
     z-index: 0;
+    margin-bottom: 45px;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  &__trackbox::-webkit-scrollbar {
+    display: none;
+  }
+
+  &__artists {
+    max-width: 80vh;
+    height: 100vh;
+    z-index: 0;
+    overflow: scroll;
+    scroll-behavior: smooth;
   }
   
   &__artists::-webkit-scrollbar {
     display: none;
   }
 
+  &__artistbox {
+    max-width: 80vh;
+    max-height: 40vh;
+    z-index: 0;
+    margin-bottom: 45px;
+    overflow-x: scroll;
+    scroll-behavior: smooth;
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: row-reverse;
+  }
+
+  &__artistbox::-webkit-scrollbar {
+    display: none;
+  }
+
   &__placeholder {
     height: 30vh;
+    width: 40vh;
+    flex-basis: 40vh;
+    flex-grow: 0;
+    flex-shrink: 0;
   }
 
   &__image {
-    box-shadow: 1px 1px 16px -2px rgba(0, 0, 0, .3);
+    //box-shadow: 1px 1px 16px -2px rgba(0, 0, 0, .3);
     height: auto;
-    max-width: 60vw;
+    max-width: 40vh;
     width: 100%;
     position: relative;
     z-index: -2;
-    margin-bottom: 45px;
+    //margin-bottom: 45px;
     border-style: double;
   }
 
   @media only screen and (min-width: 767px) {
     flex-flow: row nowrap;
-    padding: 15%;
+    padding: 0%;
   }
 }

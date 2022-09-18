@@ -18,65 +18,106 @@
       </div>
     </div>
     <div v-else @click="handleClick()" class="now-idle">
+      <!-- event darf nur auf background funktionieren, nicht bei Tracks/Artists-->
       <div class="now-idle__tracks"> 
         <div class="now-idle__topfade"></div>
-        <div class="now-idle__placeholder"></div>
-        <img 
+        <div class="now-idle__placeholder" style="width:80vh;"></div>
+        <div class="now-idle__trackbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.trackCover[0]"
           :alt="userTopItems.trackTitle[0]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__trackbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.trackCover[1]"
           :alt="userTopItems.trackTitle[1]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__trackbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.trackCover[2]"
           :alt="userTopItems.trackTitle[2]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__trackbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.trackCover[3]"
           :alt="userTopItems.trackTitle[3]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__trackbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.trackCover[4]"
           :alt="userTopItems.trackTitle[4]"
           class="now-idle__image"
-        />
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
         <div class="now-idle__placeholder"></div>
         <div class="now-idle__bottomfade"></div>
       </div>
       <div class="now-idle__artists"> 
         <div class="now-idle__topfade"></div>
-        <div class="now-idle__placeholder"></div>
-        <img 
+        <div class="now-idle__placeholder" style="width:80vh;"></div>
+        <div class="now-idle__artistbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.artistImage[0]"
           :alt="userTopItems.artistName[0]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__artistbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.artistImage[1]"
           :alt="userTopItems.artistName[1]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__artistbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.artistImage[2]"
           :alt="userTopItems.artistName[2]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__artistbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.artistImage[3]"
           :alt="userTopItems.artistName[3]"
           class="now-idle__image"
-        />
-        <img 
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
+        <div class="now-idle__artistbox">
+          <div class="now-idle__placeholder"></div>
+          <img 
           :src="userTopItems.artistImage[4]"
           :alt="userTopItems.artistName[4]"
           class="now-idle__image"
-        />
+          />
+          <div class="now-idle__placeholder"></div>
+        </div>
         <div class="now-idle__placeholder"></div>
         <div class="now-idle__bottomfade"></div>
       </div>
