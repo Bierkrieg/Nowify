@@ -19,12 +19,13 @@
     </div>
     <div v-else @click="handleClick()" class="now-idle">
       <div class="now-idle__tracks"> 
+        <div class="now-idle__topfade"></div>
+        <div class="now-idle__placeholder"></div>
         <img 
           :src="userTopItems.trackCover[0]"
           :alt="userTopItems.trackTitle[0]"
           class="now-idle__image"
         />
-        <!--
         <img 
           :src="userTopItems.trackCover[1]"
           :alt="userTopItems.trackTitle[1]"
@@ -45,15 +46,17 @@
           :alt="userTopItems.trackTitle[4]"
           class="now-idle__image"
         />
-        -->
+        <div class="now-idle__placeholder"></div>
+        <div class="now-idle__bottomfade"></div>
       </div>
       <div class="now-idle__artists"> 
+        <div class="now-idle__topfade"></div>
+        <div class="now-idle__placeholder"></div>
         <img 
           :src="userTopItems.artistImage[0]"
           :alt="userTopItems.artistName[0]"
           class="now-idle__image"
         />
-        <!--
         <img 
           :src="userTopItems.artistImage[1]"
           :alt="userTopItems.artistName[1]"
@@ -74,7 +77,8 @@
           :alt="userTopItems.artistName[4]"
           class="now-idle__image"
         />
-        -->
+        <div class="now-idle__placeholder"></div>
+        <div class="now-idle__bottomfade"></div>
       </div>
     </div>
   </div>
