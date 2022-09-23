@@ -1,0 +1,183 @@
+/**
+ * Component: Itembar.
+ * -----------------------------------------------------------------------------
+ * Styles for the 'Itembars' in the "Now-Idle" Screen.
+ *
+ */
+
+.itembar {
+    background-color: var(--colour-background-now-playing);
+    color: var(--color-text-primary);
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100%;
+    padding: 5%;
+    width: 100%;
+    align-items: center;
+    justify-content: space-evenly;
+
+    &__topfade {
+        height: 40vh;
+        width: 80vh;
+        z-index: -1;
+        position: fixed;
+        top: 0px;
+        background: linear-gradient(0deg, rgba(255, 255, 255, 0) 0%, var(--colour-background-now-playing) 100%);
+    }
+
+    &__bottomfade {
+        height: 40vh;
+        width: 80vh;
+        z-index: -1;
+        position: fixed;
+        bottom: 0px;
+        background: linear-gradient(0deg, var(--colour-background-now-playing) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    &__trackbar {
+        max-width: 80vh;
+        height: 100vh;
+        z-index: 0;
+        overflow-y: scroll;
+        scroll-behavior: smooth;
+        scroll-snap-type: y mandatory;
+    }
+
+    &__trackbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__trackbox {
+        max-width: 80vh;
+        max-height: 40vh;
+        z-index: 0;
+        margin-bottom: 45px;
+        overflow-x: scroll;
+        scroll-behavior: smooth;
+        display: flex;
+        justify-content: flex-start;
+        scroll-snap-align: center;
+    }
+
+    &__trackbox::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__detailblock {
+        height: 40vh;
+        width: 40vh;
+        flex-basis: 40vh;
+        flex-grow: 0;
+        flex-shrink: 0;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    &__detailinstance {
+        border: 0.1px solid var(--color-text-primary);
+        height: 20vh;
+        aspect-ratio: 1 / 1;
+        text-align: center;
+    }
+
+    &__detaildescription {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        padding-left: 8px;
+        padding-right: 8px;
+        font-size: 18px;
+        white-space: pre-line;
+
+        //following 4 work, but nasty
+        position: relative;
+        top: 25%;
+        transform: translateY(-50%);
+        -webkit-transform: translateY(-50%);
+    }
+
+    &__progressbar {
+        max-width: 18vh;
+        width: 100%;
+        height: 25px;
+        border: 3px double var(--color-text-primary);
+        
+        //i dont care
+        margin-top: 3vh;
+        margin-left: 1vh;
+    }
+
+    &__progressbar>div {
+        background-color: var(--color-text-primary);
+        max-width: 18vh;
+        width: 100%;
+        height: 20px;
+    }
+
+    &__artistbar {
+        max-width: 80vh;
+        height: 100vh;
+        z-index: 0;
+        overflow: scroll;
+        scroll-behavior: smooth;
+        scroll-snap-type: y mandatory;
+    }
+
+    &__artistbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__artistbox {
+        max-width: 80vh;
+        max-height: 40vh;
+        z-index: 0;
+        margin-bottom: 45px;
+        overflow-x: scroll;
+        scroll-behavior: smooth;
+        display: flex;
+        justify-content: flex-start;
+        flex-direction: row-reverse;
+        scroll-snap-align: center;
+    }
+
+    &__artistbox::-webkit-scrollbar {
+        display: none;
+    }
+
+    &__placeholder {
+        height: 30vh;
+        width: 40vh;
+        flex-basis: 40vh;
+        flex-grow: 0;
+        flex-shrink: 0;
+    }
+
+    &__image {
+        //box-shadow: 1px 1px 16px -2px rgba(0, 0, 0, .3);
+        height: auto;
+        max-width: 40vh;
+        width: 100%;
+        position: relative;
+        z-index: -2;
+        border-style: double;
+    }
+
+    @media only screen and (min-width: 767px) {
+        flex-flow: row nowrap;
+        padding: 0%;
+    }
+}
+
+.headerclass {
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    font-variant: small-caps;
+    font-size: 30px;
+}
+
+.material-icons {
+    font-size: xx-large;
+    float: left;
+    margin-top: 5px;
+    margin-left: 5px;
+}

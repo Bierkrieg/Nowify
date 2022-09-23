@@ -18,109 +18,9 @@
       </div>
     </div>
     <div v-else @click="handleClick()" class="now-idle">
-      <!-- event darf nur auf background funktionieren, nicht bei Tracks/Artists-->
-      <div class="now-idle__tracks"> 
-        <div class="now-idle__topfade"></div>
-        <div class="now-idle__placeholder" style="width:80vh;"></div>
-        <div class="now-idle__trackbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.trackCover[0]"
-          :alt="userTopItems.trackTitle[0]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__trackbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.trackCover[1]"
-          :alt="userTopItems.trackTitle[1]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__trackbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.trackCover[2]"
-          :alt="userTopItems.trackTitle[2]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__trackbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.trackCover[3]"
-          :alt="userTopItems.trackTitle[3]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__trackbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.trackCover[4]"
-          :alt="userTopItems.trackTitle[4]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__placeholder"></div>
-        <div class="now-idle__bottomfade"></div>
-      </div>
-      <div class="now-idle__artists"> 
-        <div class="now-idle__topfade"></div>
-        <div class="now-idle__placeholder" style="width:80vh;"></div>
-        <div class="now-idle__artistbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.artistImage[0]"
-          :alt="userTopItems.artistName[0]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__artistbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.artistImage[1]"
-          :alt="userTopItems.artistName[1]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__artistbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.artistImage[2]"
-          :alt="userTopItems.artistName[2]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__artistbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.artistImage[3]"
-          :alt="userTopItems.artistName[3]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__artistbox">
-          <div class="now-idle__placeholder"></div>
-          <img 
-          :src="userTopItems.artistImage[4]"
-          :alt="userTopItems.artistName[4]"
-          class="now-idle__image"
-          />
-          <div class="now-idle__placeholder"></div>
-        </div>
-        <div class="now-idle__placeholder"></div>
-        <div class="now-idle__bottomfade"></div>
-      </div>
+      <!-- event should only work on background, not on tracks/artists-->
+      <Itembar v-if="itemDataLoaded" :tracks="this.userTopItems.tracks" :isTrackbar="true"/>
+      <Itembar v-if="itemDataLoaded" :artists="this.userTopItems.artists" :isTrackbar="false"/>
     </div>
   </div>
 </template>
@@ -129,9 +29,14 @@
 import * as Vibrant from 'node-vibrant'
 
 import props from '@/utils/props.js'
+import Itembar from './Itembar.vue'
 
 export default {
   name: 'NowPlaying',
+
+  components: {
+    Itembar
+  },
 
   props: {
     auth: props.auth,
@@ -151,7 +56,8 @@ export default {
       swatches: [],
       clickCount: 0,
       clickTimer: null,
-      vibrantToggle: false
+      vibrantToggle: false,
+      itemDataLoaded: false
     }
   },
 
@@ -285,9 +191,6 @@ export default {
       } catch (error) {
         this.handleExpiredToken()
         this.userTopItems = this.getEmptyTopItems()
-        this.$nextTick(() => {
-          this.$emit('spotifyTopItemsUpdated', this.userTopItems)
-        })
       }
 
       //here?
@@ -374,6 +277,9 @@ export default {
       }
     },
 
+    /**
+     * skip the current song
+     */
     async skipSong() {
       try {
         const response = await fetch(
@@ -443,15 +349,9 @@ export default {
      */
     getEmptyTopItems() {
       return {
-        //Top Tracks
-        trackCover: [],
-        trackId: [],
-        trackTitle: [],
-
-        //Top Artists
-        artistId: [],
-        artistImage: [],
-        artistName: [],
+        //cant find a better way, looks ugly
+        tracks: [{},{},{},{},{}],
+        artists: [{},{},{},{},{}],
       }
     },
 
@@ -501,14 +401,22 @@ export default {
       }
 
       for (let i = 0; i < 5; i++) {         
-        this.userTopItems.trackCover[i] = this.topItemsResponse.Trackdata.items[i].album.images[0].url       
-        this.userTopItems.trackId[i] = this.topItemsResponse.Trackdata.items[i].id
-        this.userTopItems.trackTitle[i] = this.topItemsResponse.Trackdata.items[i].name
+        this.userTopItems.tracks[i].id = this.topItemsResponse.Trackdata.items[i].id
+        this.userTopItems.tracks[i].title = this.topItemsResponse.Trackdata.items[i].name
+        this.userTopItems.tracks[i].cover = this.topItemsResponse.Trackdata.items[i].album.images[0].url 
+        this.userTopItems.tracks[i].artists = this.topItemsResponse.Trackdata.items[i].artists.map(artists => artists.name)
+        this.userTopItems.tracks[i].album = this.topItemsResponse.Trackdata.items[i].album.name
+        this.userTopItems.tracks[i].popularity = this.topItemsResponse.Trackdata.items[i].popularity
 
-        this.userTopItems.artistId[i] = this.topItemsResponse.Artistdata.items[i].id
-        this.userTopItems.artistImage[i] = this.topItemsResponse.Artistdata.items[i].images[0].url
-        this.userTopItems.artistName[i] = this.topItemsResponse.Artistdata.items[i].name 
-      } 
+        this.userTopItems.artists[i].id = this.topItemsResponse.Artistdata.items[i].id
+        this.userTopItems.artists[i].name = this.topItemsResponse.Artistdata.items[i].name 
+        this.userTopItems.artists[i].image = this.topItemsResponse.Artistdata.items[i].images[0].url
+        this.userTopItems.artists[i].followers = this.topItemsResponse.Artistdata.items[i].followers.total
+        this.userTopItems.artists[i].genres = this.topItemsResponse.Artistdata.items[i].genres
+        this.userTopItems.artists[i].popularity = this.topItemsResponse.Artistdata.items[i].popularity
+      }
+      //only load itembar component when this happened, maybe little dirty
+      this.itemDataLoaded = true
     },
 
     /**
@@ -620,13 +528,6 @@ export default {
       this.$nextTick(() => {
         this.getAlbumColours()
       })
-    },
-
-    /**
-     * Watch our locally stored top-items data
-     */
-    userTopItems: function() {
-      this.$emit('spotifyTopItemsUpdated', this.userTopItems)
     }
   }
 }

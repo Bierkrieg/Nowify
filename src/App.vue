@@ -5,9 +5,7 @@
       :auth="auth"
       :endpoints="endpoints"
       :player="player"
-      :userTopItems="userTopItems"
       @spotifyTrackUpdated="updateCurrentTrack"
-      @spotifyTopItemsUpdated="updateTopItems"
       @requestRefreshToken="requestRefreshTokens"
     ></Component>
   </div>
@@ -58,17 +56,6 @@ export default {
         trackTitle: '',
         trackAlbum: []
       },
-      userTopItems: {
-        //Top Tracks
-        trackCover: [],
-        trackId: [],
-        trackTitle: [],
-
-        //Top Artists
-        artistId: [],
-        artistImage: [],
-        artistName: [],
-      },
       storedId: ''
     }
   },
@@ -114,10 +101,6 @@ export default {
      */
     updateCurrentTrack(value) {
       this.player = value
-    },
-
-    updateTopItems(value) {
-      this.userTopItems = value
     }
   },
 
