@@ -3,7 +3,7 @@
         <div v-if="isTrackbar" class="itembar__trackbar">
             <div class="itembar__topfade"></div>
             <div class="itembar__placeholder" style="width:80vh;"></div>
-            <div :key="track.id" v-for="track in tracks" class="itembar__trackbox">
+            <div :key="track.id" v-for="track in tracks" @click.stop="$emit('playTrackRadio', track)" class="itembar__trackbox">
                 <div class="itembar__placeholder"></div>
                 <img :src="track.cover" :alt="track.title" class="itembar__image" />
                 <div class="itembar__detailblock">
@@ -38,7 +38,7 @@
         <div v-else class="itembar__artistbar">
             <div class="itembar__topfade"></div>
             <div class="itembar__placeholder" style="width:80vh;"></div>
-            <div :key="artist.id" v-for="artist in artists" class="itembar__artistbox">
+            <div :key="artist.id" v-for="artist in artists" @click.stop="$emit('playArtistRadio', artist.id)" class="itembar__artistbox">
                 <div class="itembar__placeholder"></div>
                 <img :src="artist.image" :alt="artist.name" class="itembar__image" />
                 <div class="itembar__detailblock">

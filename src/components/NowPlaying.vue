@@ -18,9 +18,8 @@
       </div>
     </div>
     <div v-else @click="handleClick()" class="now-idle">
-      <!-- event should only work on background, not on tracks/artists-->
-      <Itembar v-if="itemDataLoaded" :tracks="this.userTopItems.tracks" :isTrackbar="true"/>
-      <Itembar v-if="itemDataLoaded" :artists="this.userTopItems.artists" :isTrackbar="false"/>
+      <Itembar @playTrackRadio="getTrackRadio" v-if="itemDataLoaded" :tracks="this.userTopItems.tracks" :isTrackbar="true"/>
+      <Itembar @playArtistRadio="getArtistRadio" v-if="itemDataLoaded" :artists="this.userTopItems.artists" :isTrackbar="false"/>
     </div>
   </div>
 </template>
@@ -50,6 +49,7 @@ export default {
       pollTopItems: '',
       playerResponse: {},
       topItemsResponse: {},
+      itemLimit: 5,
       playerData: this.getEmptyPlayer(),
       userTopItems: this.getEmptyTopItems(),
       colourPalette: '',
@@ -57,7 +57,7 @@ export default {
       clickCount: 0,
       clickTimer: null,
       vibrantToggle: false,
-      itemDataLoaded: false
+      itemDataLoaded: false,
     }
   },
 
@@ -103,7 +103,11 @@ export default {
         /**
          * Fetch error.
          */
-        if (!response.ok) {
+        if (response.status === 503) {
+          //just ignore this
+          throw{name: 'glitch', message:'weird glitch happened'}
+        }
+        else if (!response.ok) {
           throw new Error(`An error has occured: ${response.status}`)
         }
 
@@ -123,13 +127,18 @@ export default {
         data = await response.json()
         this.playerResponse = data
       } catch (error) {
-        this.handleExpiredToken()
-        data = this.getEmptyPlayer()
-        this.playerData = data
-
-        this.$nextTick(() => {
-          this.$emit('spotifyTrackUpdated', data)
-        })
+        if (error.name == 'glitch') {
+          console.log(error.message);
+        }
+        else {
+          this.handleExpiredToken()
+          data = this.getEmptyPlayer()
+          this.playerData = data
+  
+          this.$nextTick(() => {
+            this.$emit('spotifyTrackUpdated', data)
+          })
+        }
       }
     },
 
@@ -138,16 +147,13 @@ export default {
      * get the Top Items of the current User.
      */
     async getTopItems() {
-
       const time_range = 'short_term'
-      const limit = 5
-      
       let Trackdata = {}
       let Artistdata = {}
       
       try {
         const responseTracks = await fetch(
-          `${this.endpoints.base}/${this.endpoints.topTracks}?time_range=${time_range}&limit=${limit}`,
+          `${this.endpoints.base}/${this.endpoints.topTracks}?time_range=${time_range}&limit=${this.itemLimit}`,
           {
             method: 'GET',
             headers: {
@@ -164,7 +170,7 @@ export default {
         }
 
         const responseArtists = await fetch(
-          `${this.endpoints.base}/${this.endpoints.topArtists}?time_range=${time_range}&limit=${limit}`,
+          `${this.endpoints.base}/${this.endpoints.topArtists}?time_range=${time_range}&limit=${this.itemLimit}`,
           {
             method: 'GET',
             headers: {
@@ -197,6 +203,111 @@ export default {
       this.handleNowIdle()
     },
 
+    async getTrackRadio(item) {
+      const songlimit = 60
+      let data = {}
+
+      try {
+        const response = await fetch(
+          `${this.endpoints.base}/${this.endpoints.recommendations}?limit=${songlimit}&seed_tracks=${item.id}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        /**
+         * Fetch error.
+         */
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+
+        data = await response.json()
+
+        //when no recommendations can be made, get similiar artists and do it with them [recursive]
+        if (data.tracks.length < 60) {
+          const response2 = await fetch(
+            `${this.endpoints.base}/artists/${item.artistsId[0]}/related-artists`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${this.auth.accessToken}`
+              }
+            }
+          )
+          if (!response2.ok) {
+            throw new Error(`An error has occured: ${response.status}`)
+          }
+          //could pick random samples of similiar artists to narrow down chance of endless loops, but its highly unlikely anyway
+          data = await response2.json()
+          this.getArtistRadio(data.artists.map(artist => artist.id).slice(0, 4)) //i dont know why only 4 works
+        }
+        else {
+          this.togglePlayback(data.tracks.map(track => track.id))
+        }
+      } catch (error) {
+        this.handleExpiredToken()
+        console.log(error.message);    
+      }
+    },
+
+    async getArtistRadio(id) {
+      const songlimit = 60
+      let data = {}
+      if (Array.isArray(id)) { //handle recursive call
+        id = id.join(',')
+      }
+
+      try {
+        const response = await fetch(
+          `${this.endpoints.base}/${this.endpoints.recommendations}?limit=${songlimit}&seed_artists=${id}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        /**
+         * Fetch error.
+         */
+        if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+
+        data = await response.json()
+
+        //when no recommendations can be made, get similiar artists and do it with them [recursive]
+        if (data.tracks.length < 60) {
+          const response2 = await fetch(
+            `${this.endpoints.base}/artists/${id}/related-artists`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${this.auth.accessToken}`
+              }
+            }
+          )
+          if (!response2.ok) {
+            throw new Error(`An error has occured: ${response.status}`)
+          }
+          //could pick random samples of similiar artists to narrow down chance of endless loops, but its highly unlikely anyway
+          data = await response2.json()
+          this.getArtistRadio(data.artists.map(artist => artist.id).slice(0, 4)) //i dont know why only 4 works
+        }
+        else {
+          this.togglePlayback(data.tracks.map(track => track.id))
+        }
+      } catch (error) {
+        this.handleExpiredToken()
+        console.log(error.message);    
+      }
+    },
+
     /**
     * prevent overlap of click and dblclick
     */
@@ -225,24 +336,22 @@ export default {
       //pause when playing, resume when idle
       let endpoint = this.playerResponse.is_playing ? this.endpoints.pausePlayback : this.endpoints.startPlayback
       let response = ""
-      //let data = {}
 
       try {
         //when songlist is not empty, play the array of Songs
         if (songlist.length !== 0) {
-          //coming up
-
-          /* bodydata = '{\"uris:\"}'
-             const response = await fetch(
+          //format bodydata
+          let bodydata = '{"uris":["spotify:track:' + songlist.join('","spotify:track:') + '"]}'
+          response = await fetch(
             `${this.endpoints.base}/${this.endpoints.startPlayback}`,
             {
               method: 'PUT',
               headers: {
                 Authorization: `Bearer ${this.auth.accessToken}`
-              }
-              //body: JSON.stringify()
+              },
+              body: bodydata
             }
-          ) */
+          )
         }
 
         //when songlist is empty, pause when playing, resume when idle
@@ -274,6 +383,7 @@ export default {
         this.$nextTick(() => {
           this.$emit('spotifyTrackUpdated', data)
         }) */
+        console.log(error.message);
       }
     },
 
@@ -400,11 +510,12 @@ export default {
         return
       }
 
-      for (let i = 0; i < 5; i++) {         
+      for (let i = 0; i < this.itemLimit; i++) {         
         this.userTopItems.tracks[i].id = this.topItemsResponse.Trackdata.items[i].id
         this.userTopItems.tracks[i].title = this.topItemsResponse.Trackdata.items[i].name
         this.userTopItems.tracks[i].cover = this.topItemsResponse.Trackdata.items[i].album.images[0].url 
         this.userTopItems.tracks[i].artists = this.topItemsResponse.Trackdata.items[i].artists.map(artists => artists.name)
+        this.userTopItems.tracks[i].artistsId = this.topItemsResponse.Trackdata.items[i].artists.map(artists => artists.id)
         this.userTopItems.tracks[i].album = this.topItemsResponse.Trackdata.items[i].album.name
         this.userTopItems.tracks[i].popularity = this.topItemsResponse.Trackdata.items[i].popularity
 
@@ -528,7 +639,7 @@ export default {
       this.$nextTick(() => {
         this.getAlbumColours()
       })
-    }
+    },
   }
 }
 </script>

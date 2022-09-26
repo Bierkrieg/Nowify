@@ -46,6 +46,7 @@ export default {
         nowPlaying: 'me/player/currently-playing',
         topTracks: 'me/top/tracks',
         topArtists: 'me/top/artists',
+        recommendations: 'recommendations',
         startPlayback: 'me/player/play',
         pausePlayback: 'me/player/pause',
         skipNext: 'me/player/next'
