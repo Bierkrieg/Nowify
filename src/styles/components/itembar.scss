@@ -5,7 +5,7 @@
  *
  */
 
-.itembar {
+ .itembar {
     background-color: var(--colour-background-now-playing);
     color: var(--color-text-primary);
     display: flex;
@@ -85,14 +85,16 @@
         -webkit-line-clamp: 3;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        padding-left: 8px;
-        padding-right: 8px;
-        font-size: 18px;
+        padding-left: 4%;
+        padding-right: 4%;
+        font-size: 1em;
+        line-height: 1.3em;
+
         white-space: pre-line;
 
         //following 4 work, but nasty
         position: relative;
-        top: 25%;
+        top: 20%;
         transform: translateY(-50%);
         -webkit-transform: translateY(-50%);
     }
@@ -104,7 +106,7 @@
         border: 3px double var(--color-text-primary);
         
         //i dont care
-        margin-top: 3vh;
+        margin-top: -4%;
         margin-left: 1vh;
     }
 
@@ -172,11 +174,13 @@
 .headerclass {
     font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
     font-variant: small-caps;
-    font-size: 30px;
+    font-weight: 1000;
+    font-size: 1.2em;
+    padding-top: 4%;
 }
 
 .material-icons {
-    font-size: xx-large;
+    font-size:x-large;
     float: left;
     margin-top: 5px;
     margin-left: 5px;

@@ -49,7 +49,7 @@ export default {
       pollTopItems: '',
       playerResponse: {},
       topItemsResponse: {},
-      itemLimit: 5,
+      itemLimit: 8,
       playerData: this.getEmptyPlayer(),
       userTopItems: this.getEmptyTopItems(),
       colourPalette: '',
@@ -460,8 +460,8 @@ export default {
     getEmptyTopItems() {
       return {
         //cant find a better way, looks ugly
-        tracks: [{},{},{},{},{}],
-        artists: [{},{},{},{},{}],
+        tracks: [{},{},{},{},{},{},{},{}],
+        artists: [{},{},{},{},{},{},{},{}],
       }
     },
 
