@@ -21,7 +21,9 @@
     "node-sass": "4.14.1",
     "node-vibrant": "^3.1.4",
     "spotify-web-api-js": "^1.5.1",
-    "vue": "^2.6.11"
+    "vue": "^2.6.11",
+    "vue-element-loading": "^2.0.2",
+    "vue-material-design-icons": "^5.1.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.4.0",
