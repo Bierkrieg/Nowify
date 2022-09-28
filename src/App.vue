@@ -5,6 +5,7 @@
       :auth="auth"
       :endpoints="endpoints"
       :player="player"
+      :defaultDevice="defaultDevice"
       @spotifyTrackUpdated="updateCurrentTrack"
       @requestRefreshToken="requestRefreshTokens"
     ></Component>
@@ -57,7 +58,8 @@ export default {
         trackTitle: '',
         trackAlbum: []
       },
-      storedId: ''
+      storedId: '',
+      defaultDevice: process.env.VUE_APP_SP_DEFAULT_DEVICE
     }
   },
 

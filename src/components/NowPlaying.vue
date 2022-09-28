@@ -40,7 +40,8 @@ export default {
   props: {
     auth: props.auth,
     endpoints: props.endpoints,
-    player: props.player
+    player: props.player,
+    defaultDevice: String
   },
 
   data() {
@@ -58,6 +59,7 @@ export default {
       clickTimer: null,
       vibrantToggle: false,
       itemDataLoaded: false,
+      activeDevice: false
     }
   },
 
@@ -121,6 +123,7 @@ export default {
           this.$nextTick(() => {
             this.$emit('spotifyTrackUpdated', data)
           })
+          this.activeDevice = false
           return
         }
 
@@ -336,6 +339,11 @@ export default {
       //pause when playing, resume when idle
       let endpoint = this.playerResponse.is_playing ? this.endpoints.pausePlayback : this.endpoints.startPlayback
       let response = ""
+      let device = ""
+      //if there is no active device, append default Device
+      if (!this.activeDevice) {
+        device = "?device_id=" + this.defaultDevice        
+      }
 
       try {
         //when songlist is not empty, play the array of Songs
@@ -343,7 +351,7 @@ export default {
           //format bodydata
           let bodydata = '{"uris":["spotify:track:' + songlist.join('","spotify:track:') + '"]}'
           response = await fetch(
-            `${this.endpoints.base}/${this.endpoints.startPlayback}`,
+            `${this.endpoints.base}/${this.endpoints.startPlayback}${device}`,
             {
               method: 'PUT',
               headers: {
@@ -563,6 +571,9 @@ export default {
        */
       //prevent background from updating when cover stays the same
       this.vibrantToggle = (this.playerData.trackAlbum.title === this.playerResponse.item.album.name)
+      //device is active now
+      this.activeDevice = true
+      //...
       this.playerData = {
         playing: this.playerResponse.is_playing,
         trackArtists: this.playerResponse.item.artists.map(
