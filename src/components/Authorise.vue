@@ -200,7 +200,7 @@ export default {
         ].join('-')
       )
       //SCOPES!!!!!!!!!!!!1
-      searchParams.append('scope', ['user-modify-playback-state','user-read-currently-playing','user-top-read'])
+      searchParams.append('scope', ['user-modify-playback-state','user-read-currently-playing','user-top-read','user-library-read','user-library-modify'])
       return `${this.endpoints.auth}?${searchParams.toString()}`
     }
   },

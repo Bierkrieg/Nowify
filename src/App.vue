@@ -50,13 +50,15 @@ export default {
         recommendations: 'recommendations',
         startPlayback: 'me/player/play',
         pausePlayback: 'me/player/pause',
-        skipNext: 'me/player/next'
+        skipNext: 'me/player/next',
+        checkFav: 'me/tracks/contains'
       },
       player: {
         playing: false,
+        trackAlbum: [],
         trackArtists: [],
-        trackTitle: '',
-        trackAlbum: []
+        trackId: '',
+        trackTitle: ''        
       },
       storedId: '',
       defaultDevice: process.env.VUE_APP_SP_DEFAULT_DEVICE

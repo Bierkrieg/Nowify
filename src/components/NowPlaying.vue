@@ -16,10 +16,13 @@
         <h1 class="now-playing__track" v-text="player.trackTitle"></h1>
         <h2 class="now-playing__artists" v-text="getTrackArtists"></h2>
       </div>
+      <span @click.stop="toggleFavorite()" class="material-icons">{{this.trackFav ? 'favorite' : 'favorite_outline'}}</span> <!--suboptimal way yes-->
     </div>
     <div v-else @click="handleClick()" class="now-idle">
-      <Itembar @playTrackRadio="getTrackRadio" v-if="itemDataLoaded" :tracks="this.userTopItems.tracks" :isTrackbar="true"/>
-      <Itembar @playArtistRadio="getArtistRadio" v-if="itemDataLoaded" :artists="this.userTopItems.artists" :isTrackbar="false"/>
+      <div class="now-idle">
+        <Itembar @playTrackRadio="getTrackRadio" v-if="itemDataLoaded" :tracks="this.userTopItems.tracks" :isTrackbar="true"/>
+        <Itembar @playArtistRadio="getArtistRadio" v-if="itemDataLoaded" :artists="this.userTopItems.artists" :isTrackbar="false"/>
+      </div>
     </div>
   </div>
 </template>
@@ -50,7 +53,7 @@ export default {
       pollTopItems: '',
       playerResponse: {},
       topItemsResponse: {},
-      itemLimit: 8,
+      itemLimit: 15,
       playerData: this.getEmptyPlayer(),
       userTopItems: this.getEmptyTopItems(),
       colourPalette: '',
@@ -59,7 +62,9 @@ export default {
       clickTimer: null,
       vibrantToggle: false,
       itemDataLoaded: false,
-      activeDevice: false
+      activeDevice: false,
+      trimTracks: false,
+      trackFav: false
     }
   },
 
@@ -129,6 +134,20 @@ export default {
 
         data = await response.json()
         this.playerResponse = data
+
+        //check if Track is in Library/Favorites; lazy way
+        const response2 = await fetch(
+          `${this.endpoints.base}/${this.endpoints.checkFav}?ids=${this.playerResponse.item.id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+        data = await response2.json()
+        //change accordingly
+        this.trackFav = data[0]
+
       } catch (error) {
         if (error.name == 'glitch') {
           console.log(error.message);
@@ -154,9 +173,10 @@ export default {
       let Trackdata = {}
       let Artistdata = {}
       
+      //limit has to be higher then number of duplicate albums, just 50 for now
       try {
         const responseTracks = await fetch(
-          `${this.endpoints.base}/${this.endpoints.topTracks}?time_range=${time_range}&limit=${this.itemLimit}`,
+          `${this.endpoints.base}/${this.endpoints.topTracks}?time_range=${time_range}&limit=50`,
           {
             method: 'GET',
             headers: {
@@ -207,7 +227,7 @@ export default {
     },
 
     async getTrackRadio(item) {
-      const songlimit = 60
+      const songlimit = 59
       let data = {}
 
       try {
@@ -231,7 +251,7 @@ export default {
         data = await response.json()
 
         //when no recommendations can be made, get similiar artists and do it with them [recursive]
-        if (data.tracks.length < 60) {
+        if (data.tracks.length < songlimit) {
           const response2 = await fetch(
             `${this.endpoints.base}/artists/${item.artistsId[0]}/related-artists`,
             {
@@ -249,7 +269,9 @@ export default {
           this.getArtistRadio(data.artists.map(artist => artist.id).slice(0, 4)) //i dont know why only 4 works
         }
         else {
-          this.togglePlayback(data.tracks.map(track => track.id))
+          //selected track and recommendations (but its still in random order :/)
+          //-> could add whole album of selected track here
+          this.togglePlayback(Array.prototype.concat(item.id,data.tracks.map(track => track.id)))
         }
       } catch (error) {
         this.handleExpiredToken()
@@ -334,11 +356,10 @@ export default {
      * toggle Playback or start playing array of Songs
      * @param {Array} songlist 
      */
-    async togglePlayback(songlist = []) {
+    togglePlayback(songlist = []) {
 
       //pause when playing, resume when idle
       let endpoint = this.playerResponse.is_playing ? this.endpoints.pausePlayback : this.endpoints.startPlayback
-      let response = ""
       let device = ""
       //if there is no active device, append default Device
       if (!this.activeDevice) {
@@ -350,7 +371,7 @@ export default {
         if (songlist.length !== 0) {
           //format bodydata
           let bodydata = '{"uris":["spotify:track:' + songlist.join('","spotify:track:') + '"]}'
-          response = await fetch(
+          fetch(
             `${this.endpoints.base}/${this.endpoints.startPlayback}${device}`,
             {
               method: 'PUT',
@@ -365,7 +386,7 @@ export default {
         //when songlist is empty, pause when playing, resume when idle
         else if (songlist.length === 0) {
 
-          response = await fetch(
+          fetch(
             `${this.endpoints.base}/${endpoint}`,
             {
               method: 'PUT',
@@ -376,13 +397,7 @@ export default {
           )
         }
 
-        /**
-         * Fetch error.
-         */
-        if (!response.ok) {
-          throw new Error(`An error has occured: ${response.status}`)
-        }
-
+        
       } catch (error) {
 
         /* //probably not needed, but maybe useful later
@@ -393,6 +408,19 @@ export default {
         }) */
         console.log(error.message);
       }
+    },
+
+    toggleFavorite() {
+      let method = this.trackFav ? 'DELETE' : 'PUT'
+      fetch(
+        `${this.endpoints.base}/me/tracks?ids=${this.playerData.trackid}`,
+        {
+          method: method,
+          headers: {
+            Authorization: `Bearer ${this.auth.accessToken}`
+          }
+        }
+      )
     },
 
     /**
@@ -468,9 +496,9 @@ export default {
     getEmptyTopItems() {
       return {
         //cant find a better way, looks ugly
-        tracks: [{},{},{},{},{},{},{},{}],
-        artists: [{},{},{},{},{},{},{},{}],
-      }
+        tracks: [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+        artists: [{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}],
+      }  
     },
 
     /**
@@ -516,6 +544,22 @@ export default {
       ) {
         this.handleExpiredToken()
         return
+      }
+
+      if (this.trimTracks) {
+        //iterate through Trackdata and remove Tracks with Duplicate Albums
+        let seen = new Set()
+        let k = ""
+        let j = 0
+        for (let i = 0; i < 50; i++) {
+          k = this.topItemsResponse.Trackdata.items[j].album.id
+          if (seen.has(k)) {
+            this.topItemsResponse.Trackdata.items.splice(j, 1)
+          } else {
+            seen.add(k)
+            j++
+          }
+        }
       }
 
       for (let i = 0; i < this.itemLimit; i++) {         
