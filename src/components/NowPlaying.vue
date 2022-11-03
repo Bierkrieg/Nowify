@@ -413,7 +413,7 @@ export default {
     toggleFavorite() {
       let method = this.trackFav ? 'DELETE' : 'PUT'
       fetch(
-        `${this.endpoints.base}/me/tracks?ids=${this.playerData.trackid}`,
+        `${this.endpoints.base}/me/tracks?ids=${this.playerResponse.item.id}`, //why does this.playerData.trackid not work?
         {
           method: method,
           headers: {
