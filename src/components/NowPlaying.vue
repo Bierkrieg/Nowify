@@ -229,10 +229,47 @@ export default {
     async getTrackRadio(item) {
       const songlimit = 59
       let data = {}
+      let songfeatures = ""
 
       try {
-        const response = await fetch(
-          `${this.endpoints.base}/${this.endpoints.recommendations}?limit=${songlimit}&seed_tracks=${item.id}`,
+        
+        //get audiofeatures ("vibe") of selected song, to get a more adequate radio
+        let response = await fetch(
+          `${this.endpoints.base}/${this.endpoints.audiofeatures}/${item.id}`,
+          {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${this.auth.accessToken}`
+            }
+          }
+        )
+
+        /**
+         * Fetch error.
+         */
+         if (!response.ok) {
+          throw new Error(`An error has occured: ${response.status}`)
+        }
+
+        data = await response.json()
+        
+        //String that gets added to following fetch
+        //could add more features, i like this right now
+        songfeatures = 
+        `&target_danceability=${data.danceability}`+
+        `&target_energy=${data.energy}`+
+        `&target_instrumentalness=${data.instrumentalness}`+
+        `&target_loudness=${data.loudness}`+
+        `&target_mode=${data.mode}`+
+        `&target_speechiness=${data.speechiness}`+
+        `&target_tempo=${data.tempo}`+
+        `&target_valence=${data.valence}`
+        
+        console.log(songfeatures);
+
+        //get recommended tracks
+        response = await fetch(
+          `${this.endpoints.base}/${this.endpoints.recommendations}?limit=${songlimit}&seed_tracks=${item.id}${songfeatures}`,
           {
             method: 'GET',
             headers: {
@@ -252,7 +289,7 @@ export default {
 
         //when no recommendations can be made, get similiar artists and do it with them [recursive]
         if (data.tracks.length < songlimit) {
-          const response2 = await fetch(
+          response = await fetch(
             `${this.endpoints.base}/artists/${item.artistsId[0]}/related-artists`,
             {
               method: 'GET',
@@ -261,17 +298,16 @@ export default {
               }
             }
           )
-          if (!response2.ok) {
+          if (!response.ok) {
             throw new Error(`An error has occured: ${response.status}`)
           }
           //could pick random samples of similiar artists to narrow down chance of endless loops, but its highly unlikely anyway
-          data = await response2.json()
+          data = await response.json()
           this.getArtistRadio(data.artists.map(artist => artist.id).slice(0, 4)) //i dont know why only 4 works
         }
         else {
-          //selected track and recommendations (but its still in random order :/)
-          //-> could add whole album of selected track here
-          this.togglePlayback(Array.prototype.concat(item.id,data.tracks.map(track => track.id)))
+          //play the tracks
+          this.togglePlayback(data.tracks.map(track => track.id))
         }
       } catch (error) {
         this.handleExpiredToken()
@@ -413,7 +449,7 @@ export default {
     toggleFavorite() {
       let method = this.trackFav ? 'DELETE' : 'PUT'
       fetch(
-        `${this.endpoints.base}/me/tracks?ids=${this.playerResponse.item.id}`, //why does this.playerData.trackid not work?
+        `${this.endpoints.base}/me/tracks?ids=${this.playerResponse.item.id}`,
         {
           method: method,
           headers: {
@@ -580,6 +616,7 @@ export default {
       }
       //only load itembar component when this happened, maybe little dirty
       this.itemDataLoaded = true
+      //console.log(this.userTopItems);
     },
 
     /**

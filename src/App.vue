@@ -48,6 +48,7 @@ export default {
         topTracks: 'me/top/tracks',
         topArtists: 'me/top/artists',
         recommendations: 'recommendations',
+        audiofeatures: 'audio-features',
         startPlayback: 'me/player/play',
         pausePlayback: 'me/player/pause',
         skipNext: 'me/player/next',
